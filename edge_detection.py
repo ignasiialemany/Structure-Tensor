@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+import matplotlib as mpl
 import numpy as np
 
 def plot_img(img):
@@ -40,21 +41,51 @@ def compute_structure_tensor(partial_x,partial_y):
             structure_tensor[i, j, 0, 0] = dy2[i,j]
             structure_tensor[i, j, 0, 1], structure_tensor[i, j, 1, 0] = dxdy[i,j], dxdy[i,j]
             eigValues, eigVectors = np.linalg.eig(structure_tensor[i,j,:,:])
-            eigenvectors[i,j,:,0] = eigVectors[:,0]
-            eigenvectors[i,j,:,1] = eigVectors[:,1]
-            eigenvalues[i,j,0] = eigValues[0]
-            eigenvalues[i,j,1] = eigValues[1]
+            if eigValues[0]!=0 or eigValues[1]!=0:
+                print("jeje")
+            indices = np.argsort(eigValues)[::-1]
+            eigenvectors[i,j,:,0] = eigVectors[:,indices[0]]
+            eigenvectors[i,j,:,1] = eigVectors[:,indices[1]]
+            eigenvalues[i,j,0] = eigValues[indices[0]]
+            eigenvalues[i,j,1] = eigValues[indices[1]]
     return structure_tensor, eigenvectors, eigenvalues
+
+def visualize_tensor(img,tensor,eigenvalues,eigenvectors,pixel_res):
+
+    img = img[1:-1:,1:-1:]
+    r, c = np.shape(img)
+    gd = pixel_res
+
+    eigV = eigenvectors[::gd, ::gd, :, :]
+    eig = eigenvalues[::gd, ::gd, :]
+
+    fig, ax = plt.subplots(1, 1)
+    ax.set_title("Principal Eigenvector")
+    ax.imshow(
+        img,
+        zorder=0, alpha=1.0,
+        cmap="Greys_r",
+        origin="upper",
+        interpolation="hermite"
+    )
+    Y, X = np.mgrid[0:r:gd, 0:c:gd]
+
+    eigV1 = eigV[:,:,0,0] * eig[:,:,0]
+    eigV2 =  eigV[:,:,1,0] * eig[:,:,0]
+    ax.quiver(X, Y, eigV1,eigV2, color='r',minshaft = 1, minlength=0)
+    fig.savefig("principal_eigenvector.jpg",format="jpg",dpi=1200)
+    plt.show()
 
 
 if __name__ == "__main__":
 
     img = load_img("mask.jpg")
-    partial_x, partial_y = edgeDetection(img)
-    structure_tensor, eigenvectors, eigenvalues = compute_structure_tensor(partial_x,partial_y)
-    np.save("structure_tensor.npy",structure_tensor)
-    np.save("eigenvectors.npy",eigenvectors)
-    np.save("eigenvalues.npy",eigenvalues)
+    #partial_x, partial_y = edgeDetection(img)
+    #structure_tensor, eigenvectors, eigenvalues = compute_structure_tensor(partial_x,partial_y)
+    structure_tensor = np.load("structure_tensor.npy")
+    eigenvectors = np.load("eigenvectors.npy")
+    eigenvalues = np.load("eigenvalues.npy")
+    visualize_tensor(img,structure_tensor,eigenvalues,eigenvectors,10)
 
 
 
