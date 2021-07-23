@@ -5,6 +5,7 @@ import matplotlib as mpl
 
 
 class VisualizationTools:
+
     def plot_img(self, img):
         plt.imshow(img)
         return plt.show()
@@ -28,8 +29,8 @@ class VisualizationTools:
             interpolation="hermite",
         )
         Y, X = np.mgrid[0:r:gd, 0:c:gd]
-        eigV1 = eigV[:, :, 0] * eig[:, :, 0]
-        eigV2 = eigV[:, :, 1] * eig[:, :, 0]
+        eigV1 = eigV[:, :, 0] * eig[:, :]
+        eigV2 = eigV[:, :, 1] * eig[:, :]
         ax.quiver(X, Y, eigV1, eigV2, color="r", minshaft=1, minlength=0)
         fig.savefig("principal_eigenvector.jpg", format="jpg", dpi=1200)
         return plt.show()
